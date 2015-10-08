@@ -2,23 +2,83 @@
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
+#include <vector>
 
 using integer = int;
 
-std::string round(const std::string &str, const integer &decimals)
+/**
+ * Floyd's cycle-finding algorithm
+ */
+integer find_cycle_length(const std::vector<mpz_class> &numbers)
 {
-    if (str.length() <= decimals)
+    size_t max_size = numbers.size();
+
+    integer tortoise_index = 1;
+    mpz_class tortoise = numbers[tortoise_index];
+
+    integer hare_index = 2;
+    mpz_class hare = numbers[hare_index];
+
+    while (tortoise != hare)
     {
-        return str;
-    }
-    std::string ret(str);
-    int next_decimal = str[decimals] - '0';
-    if (next_decimal >= 5)
-    {
-        ret.replace((unsigned long) decimals - 1, 1, 1, (char) (str[decimals - 1] + 1));
+        ++tortoise_index;
+        tortoise = numbers[tortoise_index];
+
+        hare_index += 2;
+        hare = numbers[hare_index];
     }
 
-    return ret.substr(0, (unsigned long) decimals);
+    integer mu = 0;
+    tortoise_index = 0;
+    tortoise = numbers[tortoise_index];
+
+    while (tortoise != hare)
+    {
+        ++tortoise_index;
+        tortoise = numbers[tortoise_index];
+
+        ++hare_index;
+        hare = numbers[hare_index];
+
+        ++mu;
+    }
+
+    integer lambda = 1;
+    hare_index = tortoise_index + 1;
+    hare = numbers[hare_index];
+    while (tortoise != hare)
+    {
+        ++hare_index;
+        hare = numbers[hare_index];
+        ++lambda;
+    }
+
+    return lambda;
+}
+std::string round(const std::string &str, const integer &decimals)
+{
+    // apparently results are expected not to be rounded
+    return str.substr(0, (unsigned long) decimals);
+
+//    if (str.length() <= decimals)
+//    {
+//        return str;
+//    }
+//
+//    // copy str
+//
+//    // get the number that's after the last significant
+//    int next_decimal = str[decimals] - '0';
+//
+//    // if it's larger than 5: round up; otherwise do nothing
+//    if (next_decimal > 5)
+//    {
+//        std::string ret(str);
+//        ret.replace((unsigned long) decimals - 1, 1, 1, (char) (str[decimals - 1] + 1));
+//        return ret.substr(0, (unsigned long) decimals);
+//    }
+//
+//    return str.substr(0, (unsigned long) decimals);
 }
 
 std::string getFormattedFloat(const mpf_class &value, const integer &d)
@@ -88,15 +148,17 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-        d = 7;
+        d = 9999;
     }
     else
     {
         d = std::stoi(argv[1]);
     }
 
+    std::vector<mpz_class> numbers;
+
     integer n = 0;
-    mpf_set_default_prec(640);
+    mpf_set_default_prec(64000);
 
     mpz_class input;
     std::string input_str;
@@ -107,14 +169,6 @@ int main(int argc, char *argv[])
     mpz_class sum_of_squared_terms;
     sum_of_squared_terms = "0";
 
-    integer longest_period = 1;
-    integer current_period = 1;
-    integer current_period_index = 1;
-    integer longest_period_index = 1;
-
-    mpz_class last_value;
-    bool has_started = false;
-
     while (std::cin >> input_str)
     {
         input = input_str.c_str();
@@ -122,28 +176,7 @@ int main(int argc, char *argv[])
         sum_of_squared_terms += input * input;
         ++n;
 
-        if (has_started)
-        {
-            if (last_value == input)
-            {
-                ++current_period;
-            }
-            else
-            {
-                current_period_index = n;
-                current_period = 1;
-            }
-        }
-        else
-        {
-            has_started = true;
-        }
-        last_value = input;
-        if (current_period > longest_period)
-        {
-            longest_period = current_period;
-            longest_period_index = current_period_index;
-        }
+        numbers.push_back(input);
     }
 
     mpf_class sum_of_terms_float = mpf_class(sum_of_terms);
@@ -157,7 +190,7 @@ int main(int argc, char *argv[])
 
     std::cout << getFormattedFloat(mean_value, d) << std::endl;
     std::cout << getFormattedFloat(variance, d) << std::endl;
-    std::cout << longest_period_index << std::endl;
+    std::cout << find_cycle_length(numbers) << std::endl;
 
     return 0;
 }
