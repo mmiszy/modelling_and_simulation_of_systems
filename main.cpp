@@ -81,19 +81,30 @@ int main(int argc, char *argv[])
     mpz_class input;
     std::string input_str;
 
-    mpz_class accumulator;
-    accumulator = "0";
+    mpz_class sum_of_terms;
+    sum_of_terms = "0";
+
+    mpz_class sum_of_squared_terms;
+    sum_of_squared_terms = "0";
 
     while (std::cin >> input_str) {
         input = input_str.c_str();
-        accumulator += input;
+        sum_of_terms += input;
+        sum_of_squared_terms += input * input;
         ++n;
     }
 
+    mpf_class sum_of_terms_float = mpf_class(sum_of_terms);
+    mpf_class sum_of_squared_terms_float = mpf_class(sum_of_squared_terms);
+
     mpf_class mean_value;
-    mean_value = mpf_class(accumulator) / n;
+    mean_value = sum_of_terms_float / n;
+
+    mpf_class variance;
+    variance = sum_of_squared_terms_float / n - mean_value * mean_value;
 
     std::cout << getFormattedFloat(mean_value, d) << std::endl;
+    std::cout << getFormattedFloat(variance, d) << std::endl;
 
     return 0;
 }
