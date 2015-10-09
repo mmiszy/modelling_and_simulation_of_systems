@@ -133,9 +133,14 @@ std::string getFormattedFloat(const mpf_class &value, const integer &d)
                 return str;
             }
 
-            return str
-                    .insert((unsigned long) decimal_point_position, ".")
-                    .erase(str.find_last_not_of('0') + 1);
+            str = str.insert((unsigned long) decimal_point_position, ".");
+
+            size_t position = str.find_last_not_of('0') + 1;
+            size_t length = str.length();
+            if (position < length) {
+                str = str.erase(position, length);
+            }
+            return str;
         }
         else
         {
@@ -193,6 +198,6 @@ int main(int argc, char *argv[])
     std::cout << getFormattedFloat(mean_value, d) << std::endl;
     std::cout << getFormattedFloat(variance, d) << std::endl;
     std::cout << find_cycle_length(numbers) << std::endl;
-    
+
     return 0;
 }
